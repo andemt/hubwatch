@@ -244,9 +244,13 @@ public static class Endpoints
 
         // ----- live updates (Server-Sent Events) -----
 
-        api.MapGet("/stream", async (HttpContext context, EventBroadcaster broadcaster, SystemRegistry registry) =>
+        api.MapGet("/stream", async (HttpContext context, EventBroadcaster broadcaster, SystemRegistry registry,
+            IHostApplicationLifetime lifetime) =>
         {
-            var ct = context.RequestAborted;
+            // End the stream when the browser goes away and also when HubWatch shuts down. Otherwise the server waits
+            // for this never-ending request during shutdown until its timeout (30 s) runs out.
+            using var stream = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted, lifetime.ApplicationStopping);
+            var ct = stream.Token;
             context.Response.Headers.ContentType = "text/event-stream";
             context.Response.Headers.CacheControl = "no-cache";
             context.Response.Headers["X-Accel-Buffering"] = "no";
@@ -278,7 +282,7 @@ public static class Endpoints
             }
             catch (OperationCanceledException)
             {
-                // browser went away
+                // browser went away, or HubWatch is shutting down
             }
             finally
             {
