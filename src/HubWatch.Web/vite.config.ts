@@ -3,7 +3,10 @@ import react from '@vitejs/plugin-react'
 
 // In development, Vite serves the UI on :5173 and proxies API calls to the .NET server on :5080.
 // `pnpm build` writes the finished UI into the server's wwwroot so it ships inside the app.
-export default defineConfig({
+// `pnpm build:demo` (mode "demo") builds a stand-alone demo without backend into dist-demo. Set HUBWATCH_DEMO_BASE
+// when it is served from a subfolder, e.g. "/hubwatch/" on GitHub Pages.
+export default defineConfig(({ mode }) => ({
+  base: mode === 'demo' ? (process.env.HUBWATCH_DEMO_BASE ?? '/') : '/',
   plugins: [react()],
   server: {
     port: 5173,
@@ -24,7 +27,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../HubWatch.Server/wwwroot',
+    outDir: mode === 'demo' ? 'dist-demo' : '../HubWatch.Server/wwwroot',
     emptyOutDir: true,
   },
-})
+}))

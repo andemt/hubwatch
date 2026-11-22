@@ -9,6 +9,7 @@ publish/
 # Node / Vite
 node_modules/
 dist/
+dist-demo/
 *.tsbuildinfo
 
 # Built frontend copied into the server

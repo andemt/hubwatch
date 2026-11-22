@@ -551,3 +551,42 @@ button.link.small { font-size: 0.8rem; color: var(--muted); font-weight: 400; }
 .power-switch:disabled { cursor: not-allowed; opacity: 0.5; }
 .power-error { color: var(--danger); font-size: 0.75rem; }
 .group-head-right { display: flex; align-items: center; gap: 0.5rem; }
+
+/* Demo mode (src/demo): a small badge so the simulated home isn't mistaken for a real one. */
+.demo-badge {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 24px);
+  padding: 6px 6px 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.8125rem;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
+}
+
+.demo-badge strong {
+  color: var(--accent);
+}
+
+.demo-badge button {
+  padding: 2px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .demo-badge span {
+    display: none;
+  }
+}

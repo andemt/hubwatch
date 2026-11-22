@@ -28,12 +28,20 @@ const DEFAULT_TAB: Tab = 'live'
 
 /** The tab named by the URL path (/home, /insights, …); "/" and unknown paths mean the default tab. */
 function tabFromPath(path: string): Tab {
-  const name = path.replace(/^\/+|\/+$/g, '').toLowerCase()
+  const name = appPath(path).replace(/^\/+|\/+$/g, '').toLowerCase()
   return (ALL_TABS as string[]).includes(name) ? (name as Tab) : DEFAULT_TAB
 }
 
 function pathForTab(tab: Tab): string {
-  return tab === DEFAULT_TAB ? '/' : `/${tab}`
+  return BASE + (tab === DEFAULT_TAB ? '/' : `/${tab}`)
+}
+
+/** The folder the app is served from, without trailing slash ("" at the root, "/hubwatch" for the hosted demo). */
+const BASE = import.meta.env.BASE_URL.replace(/\/+$/, '')
+
+/** The path without the base folder. */
+function appPath(path: string): string {
+  return BASE && path.startsWith(BASE) ? path.slice(BASE.length) || '/' : path
 }
 
 /** The current tab, kept in the URL so a reload or a shared link opens the same view and Back/Forward move between views. */
@@ -146,7 +154,7 @@ export default function App() {
       <div className="app">
         <header className="topbar" ref={topbar}>
           <div className="brand">
-            <img src="/favicon.svg" alt="" width={22} height={22} />
+            <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={22} height={22} />
             <span className="brand-text">HubWatch</span>
           </div>
           <nav className="tabs">

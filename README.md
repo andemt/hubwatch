@@ -3,12 +3,16 @@
 <p align="center">
   <img src="docs/screenshots/tour.gif" alt="A short tour of HubWatch: the live log updating as events come in, rooms and scenes, a device's history, climate charts, the motion heatmap, the health view and automations" width="880">
   <br>
+  <a href="https://andemt.github.io/hubwatch/"><strong>Try the demo in your browser →</strong></a>
+  &nbsp;·&nbsp;
   <a href="#screenshots">More screenshots ↓</a>
 </p>
 
 A free, open-source web app that records and shows a **real-time log of everything that happens in your smart home**: lights turning on and off, motion, switch presses, temperature, light level, battery and connectivity health. Works with **Philips Hue** and **IKEA DIRIGERA**, and records several systems at the same time.
 
 Everything runs locally on your own computer and talks directly to your Hue Bridge or DIRIGERA hub. No cloud, no account and no tracking.
+
+**[Try the demo](https://andemt.github.io/hubwatch/)** to look around without a bridge: it runs entirely in your browser on a made-up home, with simulated events. Add the demo bridge and the log fills up.
 
 > **Good to know:** neither the Hue Bridge nor the DIRIGERA hub keeps any history itself. HubWatch records events **while it is running**. Periods when the app was closed are shown clearly as gaps in the log. On Hue it also picks up, at startup, the *last* motion, button press and so on that each sensor reported while it was closed.
 

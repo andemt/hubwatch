@@ -1,0 +1,63 @@
+name: Demo
+
+# Builds the demo (the UI against a pretend server in the browser, no backend) and publishes it on GitHub Pages.
+# Needs Pages turned on with Source "GitHub Actions" (Settings → Pages). Only runs in the public repo.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/HubWatch.Web/**'
+      - '.github/workflows/demo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.repository == 'andemt/hubwatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version is read from "packageManager" in src/HubWatch.Web/package.json
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: src/HubWatch.Web/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: src/HubWatch.Web/pnpm-lock.yaml
+
+      - name: Build demo
+        working-directory: src/HubWatch.Web
+        env:
+          HUBWATCH_DEMO_BASE: /${{ github.event.repository.name }}/
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build:demo
+          # Pages has no fallback to index.html: serve it for /hubwatch/home and the other tab paths too.
+          cp dist-demo/index.html dist-demo/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: src/HubWatch.Web/dist-demo
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

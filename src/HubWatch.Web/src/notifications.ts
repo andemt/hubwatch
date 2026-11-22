@@ -34,7 +34,7 @@ export const browserNotifications = {
   show(title: string, body: string) {
     if (!this.enabled()) return
     try {
-      new Notification(title, { body, icon: '/favicon.svg' })
+      new Notification(title, { body, icon: `${import.meta.env.BASE_URL}favicon.svg` })
     } catch {
       /* some browsers only allow notifications from a service worker */
     }
