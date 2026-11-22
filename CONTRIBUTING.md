@@ -178,6 +178,22 @@ Philips Hue bridges, `kind = "hue"`), identified by a stable id such as `hue-ecb
 3. You have looked at what you changed in the browser against a real bridge, in both light and dark theme, and in a narrow window (the tabs wrap below ~760 px).
 4. New behaviour that users would notice is mentioned in `README.md`.
 
+## Updating the README screenshots
+
+The screenshots and the tour GIF in `docs/screenshots/` are taken from a made-up demo home, so they never show anyone's real devices. `tools/screenshots/demo-server.mjs` is a stand-in for the server: it serves the built frontend and answers the API with generated data (relative to now, so the log always looks recent). No bridge, hub or database is needed.
+
+```bash
+cd src/HubWatch.Web && pnpm build && cd ../..
+npm i --no-save playwright sharp && npx playwright install chromium
+
+LIVE_INTERVAL_MS=600000 node tools/screenshots/demo-server.mjs src/HubWatch.Web/dist &   # http://localhost:5099
+node tools/screenshots/capture.mjs                                           # light + dark WebP screenshots
+kill %1 && LIVE_INTERVAL_MS=1800 node tools/screenshots/demo-server.mjs src/HubWatch.Web/dist &
+node tools/screenshots/tour.mjs                                              # tour.gif (needs ffmpeg)
+```
+
+The demo server pushes a few new events over the live stream every `LIVE_INTERVAL_MS` (default 2.5 s), which makes the log move in the tour; use a long interval for still screenshots so they don't change between runs. When a view changes, update its demo data in `demo-server.mjs` if needed and run the scripts again. Open the demo server in a browser to see what the shots will look like.
+
 ## Releasing
 
 Push a tag such as `v0.3.0`. GitHub Actions builds self-contained single-file binaries for Windows, macOS and Linux (x64/arm64) and attaches them to a GitHub Release. The Windows build is the desktop app (window + tray icon). The release build takes its version from the tag (`v0.3.0` → `0.3.0`), which is what the app shows on the System view. `<Version>` in the `.csproj` is only used for local builds and manual workflow runs; keep it and `version` in `package.json` roughly in step so local builds don't look older than the latest release.

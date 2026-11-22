@@ -1,5 +1,11 @@
 # HubWatch
 
+<p align="center">
+  <img src="docs/screenshots/tour.gif" alt="A short tour of HubWatch: the live log updating as events come in, rooms and scenes, a device's history, climate charts, the motion heatmap, the health view and automations" width="880">
+  <br>
+  <a href="#screenshots">More screenshots ↓</a>
+</p>
+
 A free, open-source web app that records and shows a **real-time log of everything that happens in your smart home**: lights turning on and off, motion, switch presses, temperature, light level, battery and connectivity health. Works with **Philips Hue** and **IKEA DIRIGERA**, and records several systems at the same time.
 
 Everything runs locally on your own computer and talks directly to your Hue Bridge or DIRIGERA hub. No cloud, no account and no tracking.
@@ -25,6 +31,64 @@ Everything runs locally on your own computer and talks directly to your Hue Brid
 Several systems — Philips Hue bridges and IKEA DIRIGERA hubs — can be recorded at the same time.
 
 Planned: bridge capacity, data export, DIRIGERA automations and energy metering, running as an always-on background service.
+
+## Screenshots
+
+<sup>The screenshots show a made-up demo home. They follow your GitHub light/dark setting.</sup>
+
+**Live log** — Everything that happens, as it happens: filter by type, search, and click a row for the raw JSON.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/live-log-dark.webp">
+  <img src="docs/screenshots/live-log-light.webp" alt="HubWatch live log">
+</picture>
+
+**Rooms & scenes** — Every room and zone with its lights in their current color, scenes as color palettes, and on/off switches.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/rooms-dark.webp">
+  <img src="docs/screenshots/rooms-light.webp" alt="HubWatch rooms & scenes">
+</picture>
+
+<details>
+<summary><b>More screenshots</b>: device details, climate charts, statistics, health and automations</summary>
+
+**Device details** — Click any device for its status, full event history and charts.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/device-dark.webp">
+  <img src="docs/screenshots/device-light.webp" alt="HubWatch device details">
+</picture>
+
+**Climate charts** — Temperature and light level per sensor. Striped areas are periods when HubWatch was not running.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/insights-dark.webp">
+  <img src="docs/screenshots/insights-light.webp" alt="HubWatch climate charts">
+</picture>
+
+**Statistics** — When there is movement in the home, how long each light is on and which devices are most active.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/statistics-dark.webp">
+  <img src="docs/screenshots/statistics-light.webp" alt="HubWatch statistics">
+</picture>
+
+**Health** — Zigbee connectivity, connection drops, battery levels and firmware updates at a glance.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/health-dark.webp">
+  <img src="docs/screenshots/health-light.webp" alt="HubWatch health">
+</picture>
+
+**Automations** — Hue app automations and the bridge's own rules and schedules, in readable form.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/automations-dark.webp">
+  <img src="docs/screenshots/automations-light.webp" alt="HubWatch automations">
+</picture>
+
+</details>
 
 ## Install
 
