@@ -1,0 +1,4 @@
+# pnpm settings for the web UI (pnpm 11+).
+# esbuild (used by Vite) needs its install script to fetch the platform binary.
+allowBuilds:
+  esbuild: true

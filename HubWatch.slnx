@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HubWatch.Server/HubWatch.Server.csproj" />
+  </Folder>
+</Solution>

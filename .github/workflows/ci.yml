@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version is read from "packageManager" in src/HubWatch.Web/package.json
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: src/HubWatch.Web/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: src/HubWatch.Web/pnpm-lock.yaml
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+
+      - name: Build web UI
+        working-directory: src/HubWatch.Web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Build server
+        run: dotnet build src/HubWatch.Server -c Release
+
+  # The Windows desktop build (window + tray icon) only compiles on Windows.
+  build-desktop:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+
+      - name: Build desktop app
+        run: dotnet build src/HubWatch.Server -c Release -p:HubWatchDesktop=true

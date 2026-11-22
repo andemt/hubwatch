@@ -1,0 +1,170 @@
+name: Release
+
+# Push a tag like v0.1.0 to build self-contained binaries and publish a GitHub Release.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { rid: win-x64,     os: windows-latest, extra: '-p:HubWatchDesktop=true' }
+          - { rid: osx-arm64,   os: macos-latest }
+          - { rid: osx-x64,     os: macos-latest }
+          - { rid: linux-x64,   os: ubuntu-latest }
+          - { rid: linux-arm64, os: ubuntu-latest }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version is read from "packageManager" in src/HubWatch.Web/package.json
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: src/HubWatch.Web/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: src/HubWatch.Web/pnpm-lock.yaml
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+
+      - name: Build web UI
+        working-directory: src/HubWatch.Web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      # On a tag build, the version shown in the app comes from the tag (v1.2.3 -> 1.2.3).
+      # Manual runs (workflow_dispatch from a branch) keep <Version> from the .csproj.
+      # Managed code is bundled into the executable and loaded from memory. Native libraries
+      # (SQLite) and wwwroot ship as loose files next to it, so nothing is unpacked to %TEMP%
+      # at startup (where antivirus or temp cleanup can remove files and break the app).
+      # Windows gets the desktop build: its own window (WebView2) and a tray icon instead of a console.
+      - name: Publish self-contained single file
+        shell: bash
+        run: |
+          version_arg=()
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            version_arg=("-p:Version=${GITHUB_REF_NAME#v}")
+            echo "Version from tag: ${GITHUB_REF_NAME#v}"
+          fi
+          dotnet publish src/HubWatch.Server -c Release -r ${{ matrix.rid }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:DebugType=none \
+            ${{ matrix.extra }} \
+            "${version_arg[@]}" \
+            -o publish/${{ matrix.rid }}
+
+      # macOS gets HubWatch.app: a menu bar app (src/HubWatch.Mac) with the server inside it, zipped with ditto so
+      # the bundle's permissions and signatures survive.
+      - name: Package
+        shell: bash
+        run: |
+          name="HubWatch-${GITHUB_REF_NAME}-${{ matrix.rid }}"
+          if [[ "${{ matrix.rid }}" == osx-* ]]; then
+            if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+              version="${GITHUB_REF_NAME#v}"
+            else
+              version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/HubWatch.Server/HubWatch.Server.csproj)
+            fi
+            packaging/macos/build-app.sh "${{ matrix.rid }}" "publish/${{ matrix.rid }}" "$version" "app/${{ matrix.rid }}"
+            ditto -c -k --keepParent "app/${{ matrix.rid }}/HubWatch.app" "${name}.zip"
+          elif [ "$RUNNER_OS" = "Windows" ]; then
+            cd "publish/${{ matrix.rid }}"
+            7z a "../../${name}.zip" .
+          else
+            cd "publish/${{ matrix.rid }}"
+            tar -czf "../../${name}.tar.gz" .
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.rid }}
+          path: HubWatch-*
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+
+  # Updates the Homebrew tap so Mac users can `brew install <owner>/tap/hubwatch`.
+  # Needs a repository secret HOMEBREW_TAP_TOKEN: a fine-grained token with "Contents: read and write" on the tap
+  # repository. The tap defaults to <owner>/homebrew-tap; set the repository variable HOMEBREW_TAP_REPO to change it.
+  # Without the secret the job is skipped with a warning, so releases still work.
+  homebrew:
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    env:
+      TAP_REPO: ${{ vars.HOMEBREW_TAP_REPO || format('{0}/homebrew-tap', github.repository_owner) }}
+      TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+    steps:
+      - name: Check for tap token
+        id: check
+        run: |
+          if [ -z "$TAP_TOKEN" ]; then
+            echo "::warning::HOMEBREW_TAP_TOKEN is not set, so the Homebrew tap was not updated."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.check.outputs.skip != 'true'
+        with:
+          path: source
+          sparse-checkout: packaging
+
+      - uses: actions/download-artifact@v4
+        if: steps.check.outputs.skip != 'true'
+        with:
+          path: dist
+          pattern: osx-*
+          merge-multiple: true
+
+      # Cloned with git rather than actions/checkout, which fails on a tap repository with no commits yet
+      # ("couldn't find remote ref refs/heads/main"). An empty tap gets its first commit on main below.
+      - name: Clone tap
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/${TAP_REPO}.git" tap
+          if ! git -C tap rev-parse --quiet --verify HEAD >/dev/null; then
+            echo "Tap repository is empty; starting it on main."
+            git -C tap symbolic-ref HEAD refs/heads/main
+          fi
+
+      - name: Update formula
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          mkdir -p tap/Formula
+          bash source/packaging/homebrew/formula.sh "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY" dist > tap/Formula/hubwatch.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add Formula/hubwatch.rb
+          if git diff --cached --quiet; then
+            echo "Formula unchanged."
+          else
+            git commit -m "hubwatch ${GITHUB_REF_NAME#v}"
+            git push origin HEAD
+          fi

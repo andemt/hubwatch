@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>HubWatch</RootNamespace>
+    <AssemblyName>HubWatch</AssemblyName>
+    <Version>0.2.0</Version>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="11.0.0" />
+  </ItemGroup>
+
+  <!--
+    Windows desktop build: add -p:HubWatchDesktop=true (on Windows). The same server, but shown in its own window
+    (WebView2) with a tray icon instead of a console and the default browser. Code in Desktop/.
+  -->
+  <PropertyGroup Condition="'$(HubWatchDesktop)' == 'true'">
+    <TargetFramework>net11.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>Desktop\hubwatch.ico</ApplicationIcon>
+    <DefineConstants>$(DefineConstants);HUBWATCH_DESKTOP</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(HubWatchDesktop)' == 'true'">
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
+    <EmbeddedResource Include="Desktop\hubwatch.ico" LogicalName="HubWatch.ico" />
+    <!-- Keep these out of the server code's global usings (Timer, Color, ... would become ambiguous). -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(HubWatchDesktop)' != 'true'">
+    <Compile Remove="Desktop\**" />
+    <None Remove="Desktop\**" />
+  </ItemGroup>
+
+</Project>

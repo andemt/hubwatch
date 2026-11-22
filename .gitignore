@@ -1,0 +1,23 @@
+# .NET
+bin/
+obj/
+*.user
+.vs/
+.idea/
+publish/
+
+# Node / Vite
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Built frontend copied into the server
+src/HubWatch.Server/wwwroot/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local dev logs
+logs/
+artifacts/
