@@ -19,6 +19,14 @@ You usually cannot reach the Hue Bridge or DIRIGERA hub yourself (it is on the d
 4. **Look at the UI** if you have a browser tool that can open `http://localhost:5173`: check the console for errors, and check the screen in light and dark theme and at narrow widths.
 5. **Report what you verified and what you could not.** If you could not compile or test something, say so plainly.
 
+## Keep parallel features in step
+
+The same capability often lives in more than one place. When you add or change something in one of them, find its siblings and update them in the same change, or say plainly why not. Search for the component, API call or text you are touching (e.g. `grep -rn BridgeFinder`) to find them. Known pairs:
+
+- **Adding a system:** first-run `Setup.tsx` and the Systems card in `Settings.tsx` both use `BridgeFinder`. A new system kind (like IKEA DIRIGERA) must be offered in both. This was once missed: IKEA could only be added from Settings, not on first start.
+- **System kinds in general:** backend adapter and endpoints, `types.ts`, the label maps in `Settings.tsx`, the demo server (`src/demo/server.ts`), README and `CONTRIBUTING.md`.
+- **Light and dark theme, wide and narrow layouts:** a UI change is checked in all of them.
+
 ## Things to keep in mind
 
 - The bridge has no history; never present gaps as quiet periods, and never extrapolate across them in statistics.

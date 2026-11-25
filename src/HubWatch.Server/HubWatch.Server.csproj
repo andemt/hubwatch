@@ -40,4 +40,15 @@
     <None Remove="Desktop\**" />
   </ItemGroup>
 
+  <!--
+    The WebView2 package also ships its WPF control, which needs WPF's WindowsBase and gives warning MSB3277
+    next to ASP.NET Core. The desktop app only uses the Windows Forms control, so leave the WPF assembly out.
+  -->
+  <Target Name="RemoveWebView2Wpf" AfterTargets="ResolvePackageAssets" Condition="'$(HubWatchDesktop)' == 'true'">
+    <ItemGroup>
+      <ResolvedCompileFileDefinitions Remove="@(ResolvedCompileFileDefinitions)" Condition="'%(Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition="'%(Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
+    </ItemGroup>
+  </Target>
+
 </Project>

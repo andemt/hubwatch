@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api'
 import type { DiscoveredBridge } from '../types'
+import { Spinner } from './Spinner'
 
 type Phase = 'choose' | 'pairing' | 'updating' | 'failed'
 
@@ -46,12 +47,14 @@ interface Props {
   /** Shown next to Connect while choosing (e.g. a Cancel button in a dialog). */
   secondaryAction?: React.ReactNode
   known?: KnownBridge[]
+  /** Told whether a pairing or address update is in progress, e.g. to hide controls that would interrupt it. */
+  onBusyChange?: (busy: boolean) => void
 }
 
 const NONE: KnownBridge[] = []
 
 /** Finds Hue bridges on the network (or takes a manual IP) and pairs with the chosen one. */
-export function BridgeFinder({ kind = 'hue', onPaired, secondaryAction, known = NONE }: Props) {
+export function BridgeFinder({ kind = 'hue', onPaired, secondaryAction, known = NONE, onBusyChange }: Props) {
   const text = TEXT[kind]
   const pairOnce = (target: string, start: boolean) =>
     kind === 'dirigera' ? api.pairIkea(target, start) : api.pairHue(target)
@@ -100,6 +103,11 @@ export function BridgeFinder({ kind = 'hue', onPaired, secondaryAction, known = 
       setBridges([])
     }
   }, [relationOf, kind])
+
+  const busy = phase === 'pairing' || phase === 'updating'
+  useEffect(() => {
+    onBusyChange?.(busy)
+  }, [busy, onBusyChange])
 
   useEffect(() => {
     cancelled.current = false
@@ -200,7 +208,15 @@ export function BridgeFinder({ kind = 'hue', onPaired, secondaryAction, known = 
           followed by “.local” also works.
         </p>
       )}
-      {bridges === null && <p className="muted">Searching your network…</p>}
+      {/* Searching and "none found" take the same space as a found bridge, so the card doesn't jump in height. */}
+      {bridges === null && (
+        <ul className="bridge-list" aria-live="polite">
+          <li className="bridge-status">
+            <Spinner />
+            Searching your network…
+          </li>
+        </ul>
+      )}
       {bridges && bridges.length > 0 && (
         <ul className="bridge-list">
           {bridges.map((b) => {
@@ -227,7 +243,11 @@ export function BridgeFinder({ kind = 'hue', onPaired, secondaryAction, known = 
           })}
         </ul>
       )}
-      {kind === 'hue' && bridges && bridges.length === 0 && <p className="muted">{discoverError ?? 'No bridge found automatically.'}</p>}
+      {kind === 'hue' && bridges && bridges.length === 0 && (
+        <ul className="bridge-list" aria-live="polite">
+          <li className="bridge-status">{discoverError ?? 'No bridge found automatically.'}</li>
+        </ul>
+      )}
       {bridges && bridges.length > 0 && bridges.every((b) => relationOf(b) === 'current') && (
         <p className="muted small">No other bridge was found. Enter its IP address below if you know it.</p>
       )}

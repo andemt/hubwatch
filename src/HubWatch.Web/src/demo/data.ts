@@ -200,11 +200,17 @@ export function createIkeaHome(): DemoHome {
     rooms: rooms(p, [
       ['office', 'Office', 'office'],
       ['balcony', 'Balcony', 'balcony'],
+      // Same names as rooms on the Hue Bridge, so Home shows how rooms from several systems merge into one.
+      // "kitchen" is lower case on purpose: names match regardless of case.
+      ['living', 'Living room', 'living_room'],
+      ['kitchen', 'kitchen', 'kitchen'],
     ]),
     devices: build(p, [
       { key: 'desk', name: 'Desk lamp', room: 'office', product: 'TRÅDFRI bulb E27 WS 806lm', model: 'LED2201G8', firmware: '1.0.21', light: { on: false, brightness: 80, mirek: 370 } },
       { key: 'office-sensor', name: 'Office sensor', room: 'office', product: 'VALLHORN wireless motion sensor', model: 'E2134', firmware: '1.0.64', battery: 90, motion: { turnsOn: 'desk' }, lux: 95 },
       { key: 'outlet', name: 'Balcony lights', room: 'balcony', product: 'TRETAKT smart plug', model: 'E2204', firmware: '2.3.087', light: { on: true, brightness: 100 } },
+      { key: 'floor-lamp', name: 'Floor lamp', room: 'living', product: 'TRÅDFRI bulb E27 CWS 806lm', model: 'LED1924G9', firmware: '1.0.21', light: { on: true, brightness: 55, xy: [0.48, 0.41] } },
+      { key: 'cabinet', name: 'Cabinet lights', room: 'kitchen', product: 'TRÅDFRI driver 10W', model: 'ICPSHC24-10EU-IL-1', firmware: '1.2.245', light: { on: false, brightness: 100, mirek: 370 } },
     ]),
     scenes: {},
     automations: [],

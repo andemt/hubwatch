@@ -21,6 +21,8 @@
   /* Height of buttons, chips and inputs that sit side by side in a toolbar. */
   --control-height: 2.25rem;
   color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
   color: var(--text);
@@ -132,13 +134,30 @@ input[type='search'], input:not([type]) { border: 1px solid var(--border); backg
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 60%, transparent); } 70% { box-shadow: 0 0 0 6px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 
 /* ---------- setup ---------- */
-.setup { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; }
+/* Top-aligned, not centred: the card's height changes between Hue and IKEA, and centring would make it jump. */
+.setup { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-items: start; padding: max(1.5rem, 12vh) 1.5rem 1.5rem; }
 .setup-card { width: min(520px, 100%); padding: 2rem; }
 .bridge-list { list-style: none; padding: 0; margin: 0 0 1rem; }
-.bridge-list label { display: flex; gap: 0.6rem; align-items: center; padding: 0.6rem 0.8rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.4rem; cursor: pointer; }
+.bridge-list label, .bridge-list .bridge-status { display: flex; gap: 0.6rem; align-items: center; min-height: 2.9rem; line-height: 1.4; padding: 0.6rem 0.8rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.4rem; cursor: pointer; }
+/* A fixed row height and no default radio margins: browsers (iOS Safari especially) size the radio differently from
+   the spinner, which made the row change height when the search finished. */
+.bridge-list input[type='radio'] { margin: 0; flex: none; width: 1rem; height: 1rem; }
+/* Same box as a found bridge, so the card keeps its height while searching. */
+.bridge-list .bridge-status { cursor: default; border-style: dashed; color: var(--muted); gap: 0; }
+.setup-tabs { display: flex; border-bottom: 1px solid var(--border); margin: 0.5rem 0 1rem; }
+.setup-tabs button { flex: 1; border: none; background: none; border-radius: 0; padding: 0.7rem 1rem; font-size: 1rem; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.setup-tabs button:hover { color: var(--text); }
+.setup-tabs button.active { color: var(--text); font-weight: 600; border-bottom-color: var(--accent); }
+.setup-tabs button:focus-visible { outline-offset: -2px; }
 .manual label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.3rem; }
 .row-inline { display: flex; gap: 0.5rem; }
-.row-inline input { flex: 1; }
+.row-inline input { flex: 1; min-width: 0; }
+/* Narrow: less padding around the first-run card so its content gets the width. */
+@media (max-width: 520px) {
+  .setup { padding: max(1.5rem, 5vh) 1rem 1rem; }
+  .setup-card { padding: 1.4rem 1.2rem; }
+  .setup-tabs button { padding-inline: 0.5rem; }
+}
 .pairing { text-align: center; padding: 1rem 0; }
 .bridge-illustration { width: 120px; height: 120px; margin: 1rem auto 1.5rem; border-radius: 28px; background: var(--surface-2); border: 1px solid var(--border); display: grid; place-items: center; }
 .bridge-button { width: 56px; height: 56px; border-radius: 50%; background: var(--accent); animation: press 1.6s ease-in-out infinite; }
@@ -192,6 +211,12 @@ button.chip.active { background: var(--accent); color: var(--accent-text); }
   .page { padding: 1rem; }
   .log .event { grid-template-columns: 4.5rem 1.4rem 1fr; }
   .log .what { grid-column: 3; }
+  /* Rooms & zones, search and Pause share one full-width row: Pause is icon-only and the search field takes what is left. */
+  .toolbar-right { width: 100%; }
+  .toolbar-right .check { white-space: nowrap; }
+  .toolbar-right .search { flex: 1 1 6rem; width: auto; min-width: 0; }
+  .pause-button { padding-inline: 0; width: var(--control-height); justify-content: center; }
+  .pause-button .button-label { display: none; }
 }
 
 /* ---------- devices ---------- */
@@ -243,7 +268,7 @@ button.link:disabled { cursor: default; opacity: 1; }
 .device-power .power-switch:hover:not(:disabled) { border-color: var(--accent); }
 
 /* ---------- charts ---------- */
-.chart { position: relative; width: 100%; }
+.chart { position: relative; width: 100%; min-width: 0; }
 .chart svg { display: block; overflow: visible; }
 .chart .grid { stroke: var(--border); stroke-width: 1; }
 .chart .axis { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
@@ -254,7 +279,8 @@ button.link:disabled { cursor: default; opacity: 1; }
 .tooltip { position: absolute; top: 4px; pointer-events: none; display: flex; flex-direction: column; gap: 0.1rem; padding: 0.4rem 0.6rem; border-radius: 8px; font-size: 0.8rem; white-space: nowrap; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 4px 16px rgb(0 0 0 / 0.18); }
 .tooltip span { color: var(--muted); font-size: 0.75rem; }
 /* One chart per row at every width: time series read better wide, and a lone chart never sits at half width. */
-.chart-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+.chart-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem; }
+.chart-grid > * { min-width: 0; }
 .chart-card { margin: 0; }
 .chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.4rem; }
 .chart-head .current { font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -279,7 +305,12 @@ button.link:disabled { cursor: default; opacity: 1; }
 .battery-fill { display: block; height: 100%; border-radius: 4px; background: var(--ok); }
 .battery-bar.low { color: var(--danger); font-weight: 600; }
 .battery-bar.low .battery-fill { background: var(--danger); }
-.log .history-row { display: grid; grid-template-columns: 11rem 1fr auto; gap: 0.75rem; align-items: center; padding: 0.5rem 1rem; }
+.log .history-row { display: grid; grid-template-columns: 11rem minmax(0, 1fr) auto; gap: 0.75rem; align-items: center; padding: 0.5rem 1rem; }
+/* Narrow: the time goes on its own line above the device name and status. */
+@media (max-width: 700px) {
+  .log .history-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 0.15rem; }
+  .log .history-row > :first-child { grid-column: 1 / -1; }
+}
 
 /* ---------- device drawer ---------- */
 dialog.drawer { margin: 0 0 0 auto; width: min(560px, 100%); max-width: none; height: 100%; max-height: none; padding: 0; overflow: hidden; color: var(--text); background: var(--bg); border: 0; border-left: 1px solid var(--border); animation: slide 0.2s ease-out; }
@@ -302,6 +333,11 @@ dialog.drawer::backdrop { background: rgb(0 0 0 / 0.35); animation: fade 0.15s e
 .drawer-body { height: 100%; overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem 1.5rem 2rem; }
 .drawer-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
 .drawer-head h2 { margin: 0 0 0.2rem; font-size: 1.3rem; }
+/* Narrow: title and close button stay at the top while the panel scrolls. The header reaches the body's padding edges
+   (negative margins) so content scrolls out of sight under it. */
+@media (max-width: 700px) {
+  .drawer-head { position: sticky; top: -1.25rem; z-index: 2; margin: -1.25rem -1.5rem 1rem; padding: 1.25rem 1.5rem 0.75rem; background: var(--bg); border-bottom: 1px solid var(--border); }
+}
 .drawer .close { display: grid; place-items: center; flex: none; border: none; background: var(--surface-2); color: var(--muted); width: 32px; height: 32px; border-radius: 50%; padding: 0; }
 .drawer .close:hover { color: var(--text); }
 .drawer .close .lucide { width: 18px; height: 18px; vertical-align: 0; }
@@ -349,7 +385,10 @@ dialog.json-dialog::backdrop { background: rgb(0 0 0 / 0.35); }
 @media (max-width: 760px) {
   .topbar { height: auto; flex-wrap: wrap; row-gap: 0.4rem; padding-bottom: 0.4rem; }
   .brand { flex: 1; }
-  .tabs { order: 3; flex-basis: 100%; }
+  .tabs { order: 3; flex-basis: 100%; gap: 0.1rem; }
+  .tabs button { padding-inline: 0.55rem; }
+  /* iOS Safari zooms the page when a field under 16px gets focus, and does not zoom back out. */
+  input:not([type='checkbox']):not([type='radio']), select, textarea { font-size: 16px; }
 }
 .tag { display: inline-block; margin-left: 0.5rem; font-size: 0.7rem; font-weight: 500; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--surface-2); color: var(--muted); vertical-align: middle; }
 .tag-on { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
@@ -448,8 +487,17 @@ button.link.small { font-size: 0.8rem; color: var(--muted); font-weight: 400; }
 .heatmap-legend { display: inline-flex; align-items: center; gap: 4px; }
 .heatmap-legend .heat-cell { width: 14px; height: 12px; }
 @media (max-width: 640px) {
-  .stat-row { grid-template-columns: 1fr 7rem; }
+  .stat-row, .stat-row.compact { grid-template-columns: minmax(0, 1fr) auto; row-gap: 0.45rem; }
+  .stat-row .stat-value-text { grid-column: 2; grid-row: 1; text-align: right; }
   .stat-row .bar-track, .stat-row .day-columns { grid-column: 1 / -1; }
+  /* The heatmap fits the card instead of scrolling sideways. */
+  .heatmap-row { grid-template-columns: 2.2rem repeat(24, minmax(0, 1fr)); gap: 2px; }
+  .heatmap { gap: 2px; }
+  .heat-cell { min-width: 0; height: 14px; }
+  .heatmap-hour { white-space: nowrap; overflow: visible; }
+  .summary { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+  .summary:has(> :nth-child(4)) { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat { min-width: 0; }
 }
 
 /* ---------- alerts ---------- */
@@ -475,7 +523,12 @@ button.link.small { font-size: 0.8rem; color: var(--muted); font-weight: 400; }
 .sev-warning .alert-icon { color: var(--warn); }
 .sev-critical .alert-icon { color: var(--danger); }
 .resolved .alert-icon { color: var(--ok); }
-.settings-grid { display: grid; grid-template-columns: max-content max-content; gap: 0.6rem 1rem; align-items: center; margin: 0.8rem 0; }
+@media (max-width: 760px) {
+  .alert-bell { position: static; }
+  .alert-panel { left: 0.5rem; right: 0.5rem; top: var(--alert-top, calc(100% + 4px)); width: auto; }
+}
+/* The label column may shrink (its text wraps) so a narrow screen keeps the number fields inside the card. */
+.settings-grid { display: grid; grid-template-columns: minmax(0, max-content) max-content; gap: 0.6rem 1rem; align-items: center; margin: 0.8rem 0; }
 .settings-grid .check, .card > .check { color: var(--text); font-size: 0.9rem; }
 .inline-input { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--muted); }
 .inline-input input { width: 4.5rem; border: 1px solid var(--border); background: var(--surface); border-radius: 8px; padding: 0.3rem 0.5rem; }
@@ -492,7 +545,12 @@ button.link.small { font-size: 0.8rem; color: var(--muted); font-weight: 400; }
 .segmented { display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--surface-2); }
 .segmented button { display: inline-flex; align-items: center; gap: 0.35rem; border: none; background: none; padding: 0.35rem 0.9rem; border-radius: 8px; color: var(--muted); font-size: 0.85rem; }
 .segmented button.active { background: var(--surface); color: var(--text); font-weight: 500; box-shadow: 0 1px 3px rgb(0 0 0 / 0.15); }
-.setting-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.setting-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
+/* Narrow: the choice buttons share the row's width and wrap below the label if they still don't fit. */
+@media (max-width: 520px) {
+  .setting-row .segmented { flex: 1 1 auto; max-width: 100%; }
+  .setting-row .segmented button { flex: 1; justify-content: center; padding-inline: 0.5rem; }
+}
 
 /* ---------- last known (stale) state ---------- */
 .chip.stale { background: transparent; border: 1px dashed color-mix(in srgb, var(--muted) 60%, transparent); color: var(--muted); }

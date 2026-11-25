@@ -183,9 +183,14 @@ export function LiveLog() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button className="secondary with-icon" onClick={() => (paused ? resume() : setPaused(true))}>
+          <button
+            className="secondary with-icon pause-button"
+            onClick={() => (paused ? resume() : setPaused(true))}
+            aria-label={paused ? 'Resume' : 'Pause'}
+            title={paused ? 'Resume' : 'Pause'}
+          >
             {paused ? <Play aria-hidden /> : <Pause aria-hidden />}
-            {paused ? 'Resume' : 'Pause'}
+            <span className="button-label">{paused ? 'Resume' : 'Pause'}</span>
           </button>
         </div>
       </div>

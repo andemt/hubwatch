@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { Alert } from '../types'
 import { formatAgo, formatDuration } from '../format'
 import { Bell, CircleCheck, OctagonAlert, TriangleAlert } from 'lucide-react'
@@ -12,6 +12,8 @@ interface Props {
 export function AlertBell({ alerts, onAcknowledge, onAcknowledgeAll }: Props) {
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
+  const bell = useRef<HTMLButtonElement>(null)
+  const panel = useRef<HTMLDivElement>(null)
 
   const active = alerts.filter((a) => a.resolvedAt === null)
   const unread = alerts.filter((a) => !a.acknowledged && a.resolvedAt === null).length
@@ -31,9 +33,25 @@ export function AlertBell({ alerts, onAcknowledge, onAcknowledgeAll }: Props) {
     }
   }, [open])
 
+  // Narrow screens: the panel spans the top bar's width (styles.css) but starts right under the bell, not under the
+  // whole bar with its tab row. Its offset within the top bar is measured, as the bar's layout varies.
+  useLayoutEffect(() => {
+    if (!open) return
+    const place = () => {
+      const bar = root.current?.closest('.topbar')
+      if (!bar || !bell.current || !panel.current) return
+      const top = bell.current.getBoundingClientRect().bottom - bar.getBoundingClientRect().top + 6
+      panel.current.style.setProperty('--alert-top', `${Math.round(top)}px`)
+    }
+    place()
+    window.addEventListener('resize', place)
+    return () => window.removeEventListener('resize', place)
+  }, [open])
+
   return (
     <div className="alert-bell" ref={root}>
       <button
+        ref={bell}
         className={`bell${unread ? ' has-unread' : ''}${critical ? ' critical' : ''}`}
         onClick={() => setOpen(!open)}
         aria-label={unread ? `${unread} new alerts` : 'Alerts'}
@@ -44,7 +62,7 @@ export function AlertBell({ alerts, onAcknowledge, onAcknowledgeAll }: Props) {
       </button>
 
       {open && (
-        <div className="alert-panel" role="dialog" aria-label="Alerts">
+        <div className="alert-panel" ref={panel} role="dialog" aria-label="Alerts">
           <div className="alert-panel-head">
             <strong>Alerts</strong>
             {unread > 0 && (

@@ -122,6 +122,17 @@ export default function App() {
     return () => observer.disconnect()
   }, [hasSystems])
 
+  // On narrow screens the tabs scroll sideways; keep the active one fully visible (only the tab row scrolls, not the page).
+  useEffect(() => {
+    const nav = topbar.current?.querySelector<HTMLElement>('.tabs')
+    const active = nav?.querySelector<HTMLElement>('button.active')
+    if (!nav || !active) return
+    const left = active.offsetLeft - nav.offsetLeft
+    const right = left + active.offsetWidth
+    if (left < nav.scrollLeft) nav.scrollLeft = left
+    else if (right > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = right - nav.clientWidth
+  }, [tab, hasSystems])
+
   useEffect(() => {
     api.status().then(setStatus).catch((e: Error) => setError(e.message))
   }, [])

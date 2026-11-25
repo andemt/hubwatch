@@ -136,6 +136,8 @@ Nothing else needs to be installed. The download contains everything.
 | Windows | `%LOCALAPPDATA%\HubWatch` |
 | Linux | `~/.local/share/HubWatch` |
 
+HubWatch never sends this data anywhere; see the [privacy policy](PRIVACY.md).
+
 Change it with `--DataDir=/some/folder`. Other options: `--urls=http://0.0.0.0:5080` (allow other devices on your network, such as your phone) and `--no-browser`.
 
 ## Development
